@@ -5,6 +5,111 @@
 
 #include <stdio.h>
 
+#ifdef LINUX
+
+#include <sys/socket.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <arpa/inet.h>
+
+namespace net {
+    Address ResolveHostname(const char* hostname, const uint16_t port) {
+		Address address;
+        address.port = port;
+
+        if(hostname) {
+            uint32_t hostnameLen = strlen(hostname);
+            address.ip = (char*) malloc(hostnameLen + 1);
+            memcpy(address.ip, hostname, hostnameLen);
+            address.ip[hostnameLen] = 0;
+            address.ipLen = hostnameLen;
+		}
+
+		sockaddr_in* nativeAddress = (sockaddr_in*) calloc(1, sizeof(sockaddr_in));
+		
+		nativeAddress->sin_family = AF_INET;
+		nativeAddress->sin_port = htons(port);
+		nativeAddress->sin_addr.s_addr = hostname ? inet_addr(hostname) : INADDR_ANY;
+		
+		address.nativeAddress = nativeAddress;
+		address.nativeAddressSize = sizeof(sockaddr_in);
+		
+		return address;
+	}
+
+    Socket Socket::CreateSocket(const Address* address) {
+		int descriptor = socket(AF_INET, SOCK_DGRAM, 0);
+		if(descriptor < 0)
+			throw std::runtime_error("Could not create socket");
+
+		Socket s;
+		s.m_nativeSocket = (void*) descriptor;
+		
+		if(address) {
+			if(bind(descriptor, (const sockaddr*) address->nativeAddress, address->nativeAddressSize) < 0) {
+				throw std::runtime_error("Could not bind socket");
+			}
+		}
+		
+		return s;
+	}
+
+    uint32_t Socket::Send(const void* buffer, const uint32_t bufferSize, const Address& dest) {
+		const sockaddr* nativeAddress = (sockaddr*) dest.nativeAddress;
+		int descriptor = (int) m_nativeSocket;
+		int send = sendto(descriptor, buffer, bufferSize, MSG_CONFIRM, nativeAddress, dest.nativeAddressSize);
+		if(send < 0) {
+			throw std::runtime_error("Could not send data!");
+		}
+		return send;
+	}
+
+    uint32_t Socket::Receive(void* buffer, const uint32_t bufferSize, Address* address) {
+		int descr = (int) m_nativeSocket;
+		FreeAddress(address);
+		sockaddr_in* clientAddress = (sockaddr_in*) malloc(sizeof(sockaddr_in));
+		address->nativeAddressSize = sizeof(sockaddr_in);
+		address->nativeAddress = (void*) clientAddress;
+
+		int received = recvfrom(descr, (char*) buffer, bufferSize, MSG_WAITALL, (sockaddr*) clientAddress,  &address->nativeAddressSize);
+		address->port = htons(clientAddress->sin_port);
+		
+		char* ip = inet_ntoa(clientAddress->sin_addr);
+		uint32_t len = strlen(ip);
+		address->ip = (char*) malloc(len + 1);
+		memcpy(address->ip, ip, len);
+		address->ipLen = len;
+		address->ip[len] = 0;
+
+
+		if(received < 0)
+			throw std::runtime_error("Could not received any data!");
+		return received;
+	}
+
+    void Socket::Close() {
+		if(close((int) m_nativeSocket) < 0)
+			throw std::runtime_error("Could not close socket");
+    }
+
+    void FreeAddress(const Address* address) {
+        if(address->ip)
+            free(address->ip);
+        if(address->nativeAddress)
+            free(address->nativeAddress);
+    }
+
+    void Initialize() {}
+
+    void Cleanup() {}
+
+    
+    
+}
+
+
+#elif defined(WINDOWS)
+
 #include <WS2tcpip.h>
 #include <WinSock2.h>
 
@@ -37,14 +142,17 @@ namespace net {
     }
 
     
-    Socket Socket::CreateSocket(const Address& address) {
+    Socket Socket::CreateSocket(const Address* address) {
         Socket result;
         SOCKET nativeSocket = socket(AF_INET, SOCK_DGRAM, 0);
         result.m_nativeSocket = (void*) nativeSocket;
+		
+		if(address) {
+        	if(bind(nativeSocket, (SOCKADDR*) address->nativeAddress, address->nativeAddressSize)) {
+           		throw std::runtime_error("Could not bind socket");
+        	}
+		}
 
-        if(bind(nativeSocket, (SOCKADDR*) address.nativeAddress, address.nativeAddressSize)) {
-            throw std::runtime_error("Could not bind socket");
-        }
         return result;
     }
 
@@ -108,3 +216,4 @@ namespace net {
     }
     
 }
+#endif // WINDOWS
