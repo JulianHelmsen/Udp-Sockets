@@ -17,8 +17,8 @@ CC = g++
 
 all: Main Net
 	$(CC) $(C_FLAGS) $(EXECUTABLE) $(BIN-INT)Main.o $(LIB_FILE) $(INCLUDE_DIR) $(DEFINES) $(ADDITIONAL_LIB)
-	$(CC) $(C_FLAGS) -o Server.exe examples/Server.cpp $(LIB_FILE) $(INCLUDE_DIR) $(DEFINES) $(ADDITIONAL_LIB)
-	$(CC) $(C_FLAGS) -o Client.exe examples/Client.cpp $(LIB_FILE) $(INCLUDE_DIR) $(DEFINES) $(ADDITIONAL_LIB)
+	$(CC) $(C_FLAGS) -o Server examples/Server.cpp $(LIB_FILE) $(INCLUDE_DIR) $(DEFINES) $(ADDITIONAL_LIB)
+	$(CC) $(C_FLAGS) -o Client examples/Client.cpp $(LIB_FILE) $(INCLUDE_DIR) $(DEFINES) $(ADDITIONAL_LIB)
 
 Main: Main.cpp
 	$(CC) $(C_FLAGS) -c -o $(BIN-INT)Main.o Main.cpp $(INCLUDE_DIR) $(DEFINES)
