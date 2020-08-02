@@ -23,6 +23,7 @@ namespace net {
 
     class Socket {
     public:
+        static Socket CreateSocket() {return CreateSocket(NULL);}
         static Socket CreateSocket(const Address* address);
 
         template<typename T>

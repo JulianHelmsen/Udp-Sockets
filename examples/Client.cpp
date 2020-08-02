@@ -16,7 +16,7 @@ int main(const int argc, const char** argv) {
 
     net::Initialize();
   
-    net::Socket socket = net::Socket::CreateSocket(NULL);
+    net::Socket socket = net::Socket::CreateSocket();
     net::Address destination = net::ResolveHostname(argv[1], port);
     printf("Created socket\n");
 
