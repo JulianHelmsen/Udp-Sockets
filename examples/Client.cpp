@@ -3,19 +3,6 @@
 #include <cstring>
 #include <string>
 
-#ifdef WINDOWS
-#include <windows.h>
-void SleepMs(uint32_t ms) {
-    Sleep(ms);
-}
-#elif defined(LINUX)
-#include <unistd.h>
-void SleepMs(uint32_t ms) {
-    usleep(ms * 1000);
-}
-#endif 
-
-
 
 
 int main(const int argc, const char** argv) {
@@ -37,16 +24,13 @@ int main(const int argc, const char** argv) {
     socket.Send(data, strlen(data), destination);
     printf("Send data!\n");
 
-    SleepMs(200);
 
     char buffer[256] = { 0 };
-    net::Address address;
-    uint32_t received = socket.Receive(buffer, sizeof(buffer), &address);
+    uint32_t received = socket.Receive(buffer, sizeof(buffer), NULL);
     buffer[received] = 0; // null termination
     printf("received: \n%s\n", buffer);
 
 
-    net::FreeAddress(&address);
     net::FreeAddress(&destination);
     socket.Close();
     net::Cleanup();

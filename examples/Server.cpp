@@ -3,17 +3,6 @@
 #include <cstring>
 #include <string>
 
-#ifdef WINDOWS
-#include <windows.h>
-void SleepMs(uint32_t ms) {
-    Sleep(ms);
-}
-#elif defined(LINUX)
-#include <unistd.h>
-void SleepMs(uint32_t ms) {
-    usleep(ms * 1000);
-}
-#endif 
 
 
 int main(const int argc, const char** argv) {
