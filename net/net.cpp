@@ -136,21 +136,25 @@ namespace net {
         address.nativeAddress = nativeAddress;
         address.nativeAddressSize = sizeof(sockaddr_in);
 
-        nativeAddress->sin_addr.s_addr = hostname ? inet_addr(hostname) : INADDR_ANY;
-        nativeAddress->sin_port = htons(port);
         nativeAddress->sin_family = AF_INET;
+        nativeAddress->sin_port = htons(port);
+        nativeAddress->sin_addr.s_addr = hostname ? inet_addr(hostname) : ADDR_ANY;
 
         return address;
     }
-
     
     Socket Socket::CreateSocket(const Address* address) {
         Socket result;
         SOCKET nativeSocket = socket(AF_INET, SOCK_DGRAM, 0);
         result.m_nativeSocket = (void*) nativeSocket;
+
+        if(nativeSocket == INVALID_SOCKET) {
+            throw std::runtime_error("Failed to create socket");
+        }
 		
 		if(address) {
         	if(bind(nativeSocket, (SOCKADDR*) address->nativeAddress, address->nativeAddressSize)) {
+                printf("wsa bind error: %d\n", WSAGetLastError());
            		throw std::runtime_error("Could not bind socket");
         	}
 		}
