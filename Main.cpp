@@ -18,23 +18,25 @@ void SleepMs(uint32_t ms) {
 
 int main(const int argc, const char** argv) {
     net::Initialize();
-    net::Address address = net::ResolveHostname(net::localhost, 28852);
-    net::Address destination = net::ResolveHostname("169.254.87.203", 28852);
+    net::Address address = net::ResolveHostname(NULL, 28852);
 
     net::Socket socket = net::Socket::CreateSocket(&address);
 
-    const char* msg = "Hallo";
-    uint32_t send = socket.Send((const void*) msg, strlen(msg), destination);
-    printf("send %d bytes\n", send);
-
-    SleepMs(100);
-
-    char recBuffer[256] = { 0 };
+    
+	char recBuffer[256] = { 0 };
     net::Address addr;
     socket.Receive(recBuffer, sizeof(recBuffer), &addr);
 
 	printf("received: %s\n", recBuffer);
     printf("%s:%d\n", addr.ip, addr.port);
+
+
+    SleepMs(100);
+
+    const char* msg = "Hallo";
+    uint32_t send = socket.Send((const void*) msg, strlen(msg), addr);
+    printf("send %d bytes\n", send);
+
 
 
 

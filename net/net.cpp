@@ -29,7 +29,7 @@ namespace net {
 		
 		nativeAddress->sin_family = AF_INET;
 		nativeAddress->sin_port = htons(port);
-		nativeAddress->sin_addr.s_addr = hostname ? inet_addr(hostname) : INADDR_ANY;
+		nativeAddress->sin_addr.s_addr = hostname ? inet_addr(hostname) : htonl(INADDR_ANY);
 		
 		address.nativeAddress = nativeAddress;
 		address.nativeAddressSize = sizeof(sockaddr_in);
@@ -38,7 +38,7 @@ namespace net {
 	}
 
     Socket Socket::CreateSocket(const Address* address) {
-		int descriptor = socket(AF_INET, SOCK_DGRAM, 0);
+		int descriptor = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 		if(descriptor < 0)
 			throw std::runtime_error("Could not create socket");
 
@@ -48,6 +48,8 @@ namespace net {
 		if(address) {
 			if(bind(descriptor, (const sockaddr*) address->nativeAddress, address->nativeAddressSize) < 0) {
 				throw std::runtime_error("Could not bind socket");
+			}else{
+				printf("Bound to port successfully\n");
 			}
 		}
 		
@@ -71,7 +73,7 @@ namespace net {
 		address->nativeAddressSize = sizeof(sockaddr_in);
 		address->nativeAddress = (void*) clientAddress;
 
-		int received = recvfrom(descr, (char*) buffer, bufferSize, MSG_WAITALL, (sockaddr*) clientAddress,  &address->nativeAddressSize);
+		int received = recvfrom(descr, (char*) buffer, bufferSize, 0, (sockaddr*) clientAddress,  &address->nativeAddressSize);
 		address->port = htons(clientAddress->sin_port);
 		
 		char* ip = inet_ntoa(clientAddress->sin_addr);
