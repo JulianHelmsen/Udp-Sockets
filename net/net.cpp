@@ -165,6 +165,7 @@ namespace net {
     uint32_t Socket::Send(const void* buffer, const uint32_t bufferSize, const Address& dest) {
         SOCKET nativeSocket = (SOCKET) m_nativeSocket;
         int result = sendto(nativeSocket, (char*) buffer, bufferSize, 0, (const sockaddr*) dest.nativeAddress, dest.nativeAddressSize);
+        
         if(result == SOCKET_ERROR) {
 			printf("%d\n", WSAGetLastError());
             throw std::runtime_error("Could not send data");

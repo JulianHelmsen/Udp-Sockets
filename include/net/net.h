@@ -26,14 +26,16 @@ namespace net {
         static Socket CreateSocket(const Address* address);
 
         template<typename T>
-        inline uint32_t Send(const T* elements, uint32_t count, const Address& dest) {return Send(elements, sizeof(T) * count, dest);}
+        inline uint32_t Send(const T* elements, uint32_t count, const Address& dest) {return Send((void*) elements, sizeof(T) * count, dest);}
+
         template<typename T>
-        uint32_t Send(const T& element, const Address& dest) {return Send(&element, sizeof(T), dest);}
+        uint32_t Send(const T& element, const Address& dest) {return Send((void*) &element, sizeof(T), dest);}
 
         uint32_t Send(const void* buffer, const uint32_t bufferSize, const Address& dest);
+        
         uint32_t Receive(void* buffer, const uint32_t bufferSize, Address* address);
         template<typename T>
-        uint32_t Receive(T* data, Address* address) {return Receive(data, sizeof(T), address);}
+        uint32_t Receive(T* data, Address* address) {return Receive((void*) data, sizeof(T), address);}
 
         void Close();
 
