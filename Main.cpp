@@ -2,12 +2,13 @@
 #include "net/net.h"
 #include <cstring>
 
+
+
 int main(const int argc, const char** argv) {
     net::Initialize();
-    net::Address address = net::ResolveHostname(net::localhost, 80);
-    net::Address destination = net::ResolveHostname(net::localhost, 8080);
+    net::Address address = net::ResolveHostname(net::localhost, 28852);
+    net::Address destination = net::ResolveHostname("169.254.87.203", 28852);
 
-	printf("target: %s:%d\n", destination.ip, destination.port);
     net::Socket socket = net::Socket::CreateSocket(&address);
 
     const char* msg = "Hallo";
@@ -20,6 +21,8 @@ int main(const int argc, const char** argv) {
 
 	printf("received: %s\n", recBuffer);
     printf("%s:%d\n", addr.ip, addr.port);
+
+
 
 
     socket.Close();
