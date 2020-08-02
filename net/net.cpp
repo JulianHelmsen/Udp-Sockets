@@ -68,21 +68,31 @@ namespace net {
 
     uint32_t Socket::Receive(void* buffer, const uint32_t bufferSize, Address* address) {
 		int descr = (int) m_nativeSocket;
-		FreeAddress(address);
-		sockaddr_in* clientAddress = (sockaddr_in*) malloc(sizeof(sockaddr_in));
-		address->nativeAddressSize = sizeof(sockaddr_in);
-		address->nativeAddress = (void*) clientAddress;
 
-		int received = recvfrom(descr, (char*) buffer, bufferSize, 0, (sockaddr*) clientAddress,  &address->nativeAddressSize);
-		address->port = htons(clientAddress->sin_port);
+        sockaddr_in* clientAddress = NULL;
+        uint32_t* nativeAddressSize = NULL;
+
+        if(address) {
+            FreeAddress(address);
+		    clientAddress = (sockaddr_in*) malloc(sizeof(sockaddr_in));
+            address->nativeAddressSize = sizeof(sockaddr_in);
+            address->nativeAddress = (void*) clientAddress;
+            nativeAddressSize = &address->nativeAddressSize;
+        }
 		
-		char* ip = inet_ntoa(clientAddress->sin_addr);
-		uint32_t len = strlen(ip);
-		address->ip = (char*) malloc(len + 1);
-		memcpy(address->ip, ip, len);
-		address->ipLen = len;
-		address->ip[len] = 0;
 
+		int received = recvfrom(descr, (char*) buffer, bufferSize, 0, (sockaddr*) clientAddress,  nativeAddressSize);
+		
+        if(address) {
+    		address->port = htons(clientAddress->sin_port);
+
+            char* ip = inet_ntoa(clientAddress->sin_addr);
+            uint32_t len = strlen(ip);
+            address->ip = (char*) malloc(len + 1);
+            memcpy(address->ip, ip, len);
+            address->ipLen = len;
+            address->ip[len] = 0;
+        }
 
 		if(received < 0)
 			throw std::runtime_error("Could not received any data!");
@@ -176,26 +186,37 @@ namespace net {
 
     uint32_t Socket::Receive(void* buffer, const uint32_t bufferSize, Address* address) {
         SOCKET nativeSocket = (SOCKET) m_nativeSocket;
-        FreeAddress(address);
-        address->nativeAddressSize = sizeof(sockaddr_in);
-        sockaddr_in* nativeAddress = (sockaddr_in*) malloc(address->nativeAddressSize);;
-        address->nativeAddress = (void*) nativeAddress;
-        int received = recvfrom(nativeSocket, (char*) buffer, bufferSize, 0, (sockaddr*) nativeAddress, (int*) &address->nativeAddressSize);
+        
+        sockaddr_in* nativeAddress = NULL;
+        uint32_t* nativeAddressSize = NULL;
+
+        if(address) {
+            FreeAddress(address);
+            address->nativeAddressSize = sizeof(sockaddr_in);
+            nativeAddress = (sockaddr_in*) malloc(address->nativeAddressSize);;
+            address->nativeAddress = (void*) nativeAddress;
+            nativeAddressSize = &address->nativeAddressSize;
+        }
+        
+        int received = recvfrom(nativeSocket, (char*) buffer, bufferSize, 0, (sockaddr*) nativeAddress, (int*) nativeAddressSize);
         
         if(received == SOCKET_ERROR) {
             printf("%d\n", WSAGetLastError());
             throw std::runtime_error("Could not received from socket");
         }
 
-        printf("Received: %d\n", received);
 
-        char* ip = inet_ntoa(((sockaddr_in*)address->nativeAddress)->sin_addr);
-        uint32_t len = strlen(ip);
-        address->ip = (char*) malloc(len + 1);
-        address->ipLen = len;
-        memcpy(address->ip, ip, len);
-        address->ip[address->ipLen] = 0;
-        address->port = htons(nativeAddress->sin_port);
+
+        // store the ip and port in an address structure
+        if(address) {
+            char* ip = inet_ntoa(((sockaddr_in*)address->nativeAddress)->sin_addr);
+            uint32_t len = strlen(ip);
+            address->ip = (char*) malloc(len + 1);
+            address->ipLen = len;
+            memcpy(address->ip, ip, len);
+            address->ip[address->ipLen] = 0;
+            address->port = htons(nativeAddress->sin_port);
+        }
 
 
         return received;
