@@ -166,6 +166,7 @@ namespace net {
         int received = recvfrom(nativeSocket, (char*) buffer, bufferSize, 0, (sockaddr*) nativeAddress, (int*) &address->nativeAddressSize);
         
         if(received == SOCKET_ERROR) {
+            printf("%d\n", WSAGetLastError());
             throw std::runtime_error("Could not received from socket");
         }
 

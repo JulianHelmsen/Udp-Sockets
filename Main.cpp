@@ -2,6 +2,18 @@
 #include "net/net.h"
 #include <cstring>
 
+#ifdef WINDOWS
+#include <windows.h>
+void SleepMs(uint32_t ms) {
+    Sleep(ms);
+}
+#elif defined(LINUX)
+#include <unistd.h>
+void SleepMs(uint32_t ms) {
+    usleep(ms * 1000);
+}
+#endif 
+
 
 
 int main(const int argc, const char** argv) {
@@ -14,6 +26,8 @@ int main(const int argc, const char** argv) {
     const char* msg = "Hallo";
     uint32_t send = socket.Send((const void*) msg, strlen(msg), destination);
     printf("send %d bytes\n", send);
+
+    SleepMs(100);
 
     char recBuffer[256] = { 0 };
     net::Address addr;
