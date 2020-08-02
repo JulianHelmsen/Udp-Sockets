@@ -18,10 +18,10 @@ void SleepMs(uint32_t ms) {
 
 int main(const int argc, const char** argv) {
     net::Initialize();
-    
+    net::Address address = net::ResolveHostname(net::localhost, 28852);
     net::Address destination = net::ResolveHostname("169.254.87.203", 28852);
 
-    net::Socket socket = net::Socket::CreateSocket();
+    net::Socket socket = net::Socket::CreateSocket(&address);
 
     const char* msg = "Hallo";
     uint32_t send = socket.Send((const void*) msg, strlen(msg), destination);
@@ -40,6 +40,7 @@ int main(const int argc, const char** argv) {
 
 
     socket.Close();
+    net::FreeAddress(&address);
     net::Cleanup();
     return 0;
 }

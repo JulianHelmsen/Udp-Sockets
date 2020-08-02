@@ -23,7 +23,7 @@ namespace net {
 
     class Socket {
     public:
-        static Socket CreateSocket();
+        static Socket CreateSocket(const Address* address);
 
         template<typename T>
         inline uint32_t Send(const T* elements, uint32_t count, const Address& dest) {return Send(elements, sizeof(T) * count, dest);}

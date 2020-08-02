@@ -33,16 +33,24 @@ namespace net {
 		
 		address.nativeAddress = nativeAddress;
 		address.nativeAddressSize = sizeof(sockaddr_in);
+		
 		return address;
 	}
 
-    Socket Socket::CreateSocket() {
+    Socket Socket::CreateSocket(const Address* address) {
 		int descriptor = socket(AF_INET, SOCK_DGRAM, 0);
 		if(descriptor < 0)
 			throw std::runtime_error("Could not create socket");
 
 		Socket s;
 		s.m_nativeSocket = (void*) descriptor;
+		
+		if(address) {
+			if(bind(descriptor, (const sockaddr*) address->nativeAddress, address->nativeAddressSize) < 0) {
+				throw std::runtime_error("Could not bind socket");
+			}
+		}
+		
 		return s;
 	}
 
@@ -134,21 +142,23 @@ namespace net {
     }
 
     
-    Socket Socket::CreateSocket() {
+    Socket Socket::CreateSocket(const Address* address) {
         Socket result;
         SOCKET nativeSocket = socket(AF_INET, SOCK_DGRAM, 0);
         result.m_nativeSocket = (void*) nativeSocket;
-
-        if(nativeSocket == INVALID_SOCKET) {
-            throw std::runtime_error("Socket creation failed!");
-        }
+		
+		if(address) {
+        	if(bind(nativeSocket, (SOCKADDR*) address->nativeAddress, address->nativeAddressSize)) {
+           		throw std::runtime_error("Could not bind socket");
+        	}
+		}
 
         return result;
     }
 
     uint32_t Socket::Send(const void* buffer, const uint32_t bufferSize, const Address& dest) {
         SOCKET nativeSocket = (SOCKET) m_nativeSocket;
-        int result = sendto(nativeSocket, (char*) buffer, bufferSize, 0, (sockaddr*) dest.nativeAddress, dest.nativeAddressSize);
+        int result = sendto(nativeSocket, (char*) buffer, bufferSize, 0, (const sockaddr*) dest.nativeAddress, dest.nativeAddressSize);
         if(result == SOCKET_ERROR) {
 			printf("%d\n", WSAGetLastError());
             throw std::runtime_error("Could not send data");
