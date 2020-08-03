@@ -105,10 +105,16 @@ namespace net {
     }
 
     void FreeAddress(const Address* address) {
-        if(address->ip)
+        if(address->ip) {
             free(address->ip);
-        if(address->nativeAddress)
+            address->ip = NULL;
+        }
+
+        if(address->nativeAddress) {
             free(address->nativeAddress);
+            address->nativeAddress = NULL;
+        }
+            
     }
 
     void Initialize() {}
@@ -223,10 +229,15 @@ namespace net {
     }
 
     void FreeAddress(const Address* address) {
-        if(address->ip)
+        if(address->ip) {
             free(address->ip);
-        if(address->nativeAddress)
+            address->ip = NULL;
+        }
+           
+        if(address->nativeAddress) {
             free(address->nativeAddress);
+            address->nativeAddress = NULL;
+        }
     }
 
     void Initialize() {
