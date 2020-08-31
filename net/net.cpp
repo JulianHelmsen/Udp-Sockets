@@ -231,12 +231,12 @@ namespace net {
     void FreeAddress(const Address* address) {
         if(address->ip) {
             free(address->ip);
-            address->ip = NULL;
+            ((Address*)address)->ip = NULL;
         }
            
         if(address->nativeAddress) {
             free(address->nativeAddress);
-            address->nativeAddress = NULL;
+            ((Address*)address)->nativeAddress = NULL;
         }
     }
 
